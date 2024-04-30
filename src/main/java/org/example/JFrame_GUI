@@ -1,0 +1,92 @@
+package org.example;
+
+import org.json.JSONObject;
+
+import javax.swing.*;
+import javax.swing.border.Border;
+import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.Timer;
+import java.util.TimerTask;
+
+public class Main {
+    public static void main(String[] args) {
+        String text = "";
+        try {
+            URL obj = new URL("https://www.binance.com/fapi/v1/premiumIndex?symbol=BTCUSDT");
+            HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+            con.setRequestMethod("GET");
+            int responseCode = con.getResponseCode();
+            BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+            String inputLine;
+            StringBuffer response = new StringBuffer();
+            while ((inputLine = in.readLine()) != null) {
+                response.append(inputLine);
+            }
+            in.close();
+            JSONObject jsonObject = new JSONObject(response.toString());
+            String markPrice = jsonObject.optString("markPrice");
+            text = (markPrice);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        JFrame frame = new JFrame();
+        frame.setSize(98, 18);
+        JTextArea textArea = new JTextArea(0, 0);
+        textArea.setText(text);
+        textArea.setLocation(0,textArea.getPreferredSize().height+22);
+        textArea.setEditable(false);
+        Border border = BorderFactory.createEmptyBorder();
+        textArea.setBorder(border);
+        JScrollPane scrollPane = new JScrollPane(textArea);
+        scrollPane.setBorder(border);
+        frame.add(scrollPane);
+        frame.setUndecorated(true);
+        if (args.length > 0 && args[0].equals("1")) {
+            frame.setAlwaysOnTop(true);
+        }
+        frame.setVisible(true);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        int screenWidth = (int) screenSize.getWidth();
+        frame.setLocation(screenWidth - frame.getWidth(), 0);
+        Timer timer = new Timer();
+
+        // Выполняем код сразу же
+        TimerTask task = new TimerTask() {
+            @Override
+            public void run() {
+                try {
+                    URL obj = new URL("https://www.binance.com/fapi/v1/premiumIndex?symbol=BTCUSDT");
+                    HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+                    con.setRequestMethod("GET");
+                    int responseCode = con.getResponseCode();
+                    BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+                    String inputLine;
+                    StringBuffer response = new StringBuffer();
+                    while ((inputLine = in.readLine()) != null) {
+                        response.append(inputLine);
+                    }
+                    in.close();
+                    JSONObject jsonObject = new JSONObject(response.toString());
+                    String markPrice = jsonObject.optString("markPrice");
+                    textArea.setText(markPrice);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+
+        task.run();
+
+        // Запускаем поток, который будет выполняться каждую секунду
+        timer.scheduleAtFixedRate(task, 0, 1000);
+    }
+
+    private static int x, y;
+}
